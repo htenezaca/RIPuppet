@@ -136,6 +136,9 @@ async function recursiveExploration(page, link, depth, parentState){
     console.log(err); 
     return; 
   });
+  
+  await new Promise(r => setTimeout(r,5000));
+  
   let html = await getDOM(page);
   let parsedHtml = parser.parse(html);
   let body = parsedHtml.querySelector('body');
@@ -374,7 +377,7 @@ async function getButtons(page, elementList){
   let buttons = await page.$$('button');
   let button;
   for (let i = 0; i < buttons.length ; i++ ){
-    let disabled = page.evaluate((btn)=>{
+    let disabled = await page.evaluate((btn)=>{
       return typeof btn.getAttribute("disabled") === "string" || btn.getAttribute("aria-disabled") === "true";
     }, buttons[i]);
     if(!disabled){
@@ -445,7 +448,11 @@ async function interactWithObject(object, page, currentState, interactionNumber,
       else{
         await fillInput(elementHandle, page);
       }
-      await page.evaluate(_ => {window.scrollTo(0,0)});
+      await page.evaluate(_ => {
+        window.scrollTo(0, 0);
+        window.scrollTo(0, document.body.scrollHeight);
+
+      });
     }    
   }
   else if(object.type === 'button'){
@@ -458,9 +465,11 @@ async function interactWithObject(object, page, currentState, interactionNumber,
       await elementHandle.hover().catch(e =>{
         console.log('Could not hover to element');
       });
+	  
       await elementHandle.click().catch(e =>{
         console.log('unclickable element');
       });
+	  await new Promise(r => setTimeout(r,2000));
       let html = await getDOM(page);
       if(!!html) {
 
@@ -493,7 +502,8 @@ async function interactWithObject(object, page, currentState, interactionNumber,
             err=>{if(err) console.log(err)})
         }
         await page.evaluate(_ => {
-          window.scrollTo(0,0);
+          window.scrollTo(0, 0);
+          window.scrollTo(0, document.body.scrollHeight);
         }).catch(err =>{});
       }
     }
@@ -544,7 +554,8 @@ async function interactWithObject(object, page, currentState, interactionNumber,
                 err=>{if(err) console.log(err)})
             }
             await page.evaluate(_ => {
-              window.scrollTo(0,0);
+              window.scrollTo(0, 0);
+              window.scrollTo(0, document.body.scrollHeight);
             }).catch(err =>{});
           }
         }
@@ -653,7 +664,7 @@ async function fillInput(elementHandle, page){
     page.keyboard.type(faker.random.number) ;
   }
   else if(type === 'submit' || type === 'radio' || type === 'checkbox'){
-    elementHandle.click();
+    //elementHandle.click();
   }
 }
 
